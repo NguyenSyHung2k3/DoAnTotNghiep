@@ -1,0 +1,8 @@
+node_modules/
+.env
+logs/
+ca/certs/*
+!ca/certs/.gitkeep
+ca_data
+certs/certs
+certs/certDevice/ca_data
