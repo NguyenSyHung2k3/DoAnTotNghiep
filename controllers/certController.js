@@ -160,7 +160,7 @@ const revokeCertificate = async (req, res) => {
 
 const getCRL = async (req, res) => {
     try {
-        const caCertPath = path.join(__dirname, '../certs/certs/ca-cert.pem');
+        const caCertPath = path.resolve(process.env.CA_CERT_PATH);
         
         let caCertPem;
         try {

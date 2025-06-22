@@ -18,13 +18,12 @@ const mongoConfig = {
   uri: process.env.MONGODB_URI
 };
 
-const caCertPath = path.join(__dirname, '../certs/certs/ca-cert.pem');
+const caCertPath = path.resolve(process.env.CA_CERT_PATH);
 let caCertPem;
 try {
   caCertPem = fs.readFileSync(caCertPath, 'utf8');
   console.log('CA certificate loaded successfully from:', caCertPath);
 
-  // Kiểm tra khóa công khai CA
   const caCert = new crypto.X509Certificate(caCertPem);
   console.log('CA certificate public key verified successfully');
 } catch (err) {
@@ -32,7 +31,7 @@ try {
   throw new Error(`Unable to load or verify CA certificate: ${err.message}`);
 }
 
-const caPrivateKeyPath = path.join(__dirname, '../certs/certs/ca-key.pem');
+const caPrivateKeyPath = path.resolve(process.env.CA_KEY_PATH);
 let caPrivateKeyPem;
 try {
   caPrivateKeyPem = fs.readFileSync(caPrivateKeyPath, 'utf8');
@@ -43,28 +42,23 @@ try {
 }
 
 function getDecryptedPrivateKey() {
-  const encryptedKeyPath = path.join(__dirname, '../certs/certDevice/ca-key.encrypted.pem');
+  const encryptedKeyPath = path.resolve(process.env.ENCRYPTED_KEY_PATH);
   const passphrase = process.env.CA_KEY_PASSPHRASE;
-  
+  const decryptScriptPath = path.resolve(process.env.DECRYPT_SCRIPT_PATH);
+
   if (!passphrase) {
     throw new Error('CA_KEY_PASSPHRASE is missing in .env');
   }
 
   try {
-    // Gọi Python script để giải mã
     const result = spawnSync('python', [
-      path.join(__dirname, '../certs/certDevice/decrypt_key.py'),
+      decryptScriptPath,
       encryptedKeyPath,
       passphrase
     ]);
 
-    if (result.error) {
-      throw result.error;
-    }
-
-    if (result.status !== 0) {
-      throw new Error(result.stderr.toString());
-    }
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(result.stderr.toString());
 
     return result.stdout.toString('utf8').trim();
   } catch (err) {
@@ -78,7 +72,7 @@ module.exports = {
   mongoConfig,
   caCertPem,
   caPrivateKeyPem,
-  caPrivateKeyPemPath: 'C:\\Users\\pv\\OneDrive\\Desktop\\DATN\\datn\\src\\certs\\certs\\ca-key.pem',
-  caCertPemPath: 'C:\\Users\\pv\\OneDrive\\Desktop\\DATN\\datn\\src\\certs\\certs\\ca-cert.pem',
+  caPrivateKeyPemPath: caPrivateKeyPath,
+  caCertPemPath: caCertPath,
   getDecryptedPrivateKey,
 };
