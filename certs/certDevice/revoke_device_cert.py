@@ -8,7 +8,6 @@ from cryptography.x509.oid import NameOID, ExtensionOID
 
 def revoke_device_cert(device_id, ca_cert_path="ca-cert.pem", ca_key_path="ca-key.pem", serial=None, crl_path="ca_data/crl.pem"):
     try:
-        # Kiểm tra các tệp đầu vào tồn tại
         if not os.path.exists(ca_cert_path):
             return {"status": "error", "message": f"Tệp chứng thư CA không tồn tại: {ca_cert_path}"}
         if not os.path.exists(ca_key_path):
@@ -16,21 +15,17 @@ def revoke_device_cert(device_id, ca_cert_path="ca-cert.pem", ca_key_path="ca-ke
         if not serial:
             return {"status": "error", "message": "Số serial của chứng thư là bắt buộc"}
 
-        # Tạo thư mục ca_data nếu chưa tồn tại
         ca_data_dir = "ca_data"
         if not os.path.exists(ca_data_dir):
             os.makedirs(ca_data_dir)
 
-        # Định nghĩa đường dẫn các tệp trong thư mục ca_data
         index_file = os.path.join(ca_data_dir, "index.txt")
         serial_file = os.path.join(ca_data_dir, "serial")
         config_file = os.path.join(ca_data_dir, "openssl.cnf")
 
-        # Tạo tệp index nếu chưa có
         if not os.path.exists(index_file):
             open(index_file, "a").close()
 
-        # Tạo tệp serial nếu chưa có
         if not os.path.exists(serial_file):
             with open(serial_file, "w") as f:
                 f.write("1000\n")
